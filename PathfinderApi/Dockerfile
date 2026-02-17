@@ -52,6 +52,7 @@ ENV OTEL_SERVICE_NAME=pathfinder-api
 ENV OTEL_TRACES_EXPORTER=otlp
 ENV OTEL_METRICS_EXPORTER=none
 ENV OTEL_LOGS_EXPORTER=none
+ENV OTEL_DOTNET_AUTO_TRACES_ADDITIONAL_SOURCES=PathfinderApi
 
 # Copy published app from build stage
 COPY --from=build /app/publish .

@@ -15,6 +15,7 @@ data:
   OTEL_TRACES_EXPORTER: "otlp"
   OTEL_METRICS_EXPORTER: "none"
   OTEL_LOGS_EXPORTER: "none"
+  OTEL_DOTNET_AUTO_TRACES_ADDITIONAL_SOURCES: "PathfinderApi"
 
   # Angular UI Configuration
   API_URL: "http://api-service:8080"

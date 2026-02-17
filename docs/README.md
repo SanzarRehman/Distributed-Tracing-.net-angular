@@ -47,15 +47,7 @@ Filtering, sampling, and customization:
 - **Propagation formats** (W3C Trace Context, B3, Jaeger)
 - **Performance tuning** (batch size, timeout, queue limits)
 
-### 4. [OpenTelemetry Fundamentals](./04-opentelemetry-fundamentals.md)
-Understanding the OpenTelemetry protocol and custom processing:
-- **OTLP Protocol** (gRPC vs HTTP, Protobuf schema)
-- **Trace data model** (spans, attributes, events, links)
-- **Building a custom collector** (receiving OTLP, processing, exporting)
-- **Alternative backends** (Prometheus, Grafana Tempo, Zipkin, custom services)
-- **Trace context propagation** (headers, formats, cross-service correlation)
-
-### 5. [Docker Deployment](./05-docker-deployment.md)
+### 4. [Docker Deployment](./05-docker-deployment.md)
 Production deployment with Docker and Docker Compose:
 - Multi-stage Dockerfiles
 - docker-compose.prod.yml with health checks

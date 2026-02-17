@@ -47,6 +47,7 @@ pathfinder-api:
     - OTEL_TRACES_EXPORTER=otlp
     - OTEL_METRICS_EXPORTER=none
     - OTEL_LOGS_EXPORTER=none
+    - OTEL_DOTNET_AUTO_TRACES_ADDITIONAL_SOURCES=PathfinderApi
 ```
 
 ## Switching Destinations
@@ -84,6 +85,7 @@ cd PathfinderApi
 | `OTEL_METRICS_EXPORTER` | Metrics exporter (`none` to disable) | `otlp` |
 | `OTEL_LOGS_EXPORTER` | Logs exporter (`none` to disable) | `otlp` |
 | `OTEL_LOG_LEVEL` | Debug logging (`debug`, `info`) | `info` |
+| `OTEL_DOTNET_AUTO_TRACES_ADDITIONAL_SOURCES` | Custom `ActivitySource` names to listen to | — |
 | `OTEL_DOTNET_AUTO_LOG_DIRECTORY` | Log file location for debugging | — |
 
 ## Debugging
