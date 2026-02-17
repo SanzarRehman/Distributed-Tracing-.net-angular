@@ -1,4 +1,4 @@
-# OpenTelemetry in .NET vs Angular: Implementation Comparison
+# OpenTelemetry in .NET and Angular
 
 ## .NET: Two Instrumentation Approaches
 
