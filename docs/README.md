@@ -54,30 +54,6 @@ Production deployment with Docker and Docker Compose:
 - HTTPS with SSL termination
 - Scaling and resource limits
 
-### 6. [Kubernetes Deployment](./06-kubernetes-deployment.md)
-Deploy to any Kubernetes cluster (EKS, AKS, GKE):
-- Kubernetes manifests (deployments, services, ingress)
-- TLS with cert-manager
-- Auto-scaling with HPA
-- Cloud-specific setup (EKS, AKS, GKE)
-
-### 7. [AWS ECS Deployment](./07-aws-deployment.md)
-Deploy to AWS Elastic Container Service:
-- ECR image registry
-- ECS Fargate task definitions
-- Application Load Balancer
-- CloudWatch integration
-- Auto-scaling policies
-
-### 8. [Azure Container Apps Deployment](./08-azure-deployment.md)
-Deploy to Azure Container Apps (serverless):
-- Azure Container Registry
-- Container Apps with managed identity
-- Application Insights integration
-- Custom domains and TLS
-- Scale-to-zero capabilities
-
-
 ---
 
 ## Quick Start
