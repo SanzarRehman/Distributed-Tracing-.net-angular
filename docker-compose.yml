@@ -1,0 +1,86 @@
+services:
+  # ─── Observability ─────────────────────────────────────────────
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: pathfinder-jaeger
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4317:4317"     # OTLP gRPC (direct, bypasses collector)
+      - "4318:4318"     # OTLP HTTP (for browser UIs)
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_OTLP_HTTP_CORS_ALLOWED_ORIGINS=http://localhost:4200,http://localhost:4201
+      - COLLECTOR_OTLP_HTTP_CORS_ALLOWED_HEADERS=content-type
+    restart: unless-stopped
+    networks:
+      - pathfinder-network
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: pathfinder-otel-collector
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+    ports:
+      - "4319:4317"     # OTLP gRPC (collector)
+      - "4320:4318"     # OTLP HTTP (collector)
+    depends_on:
+      - jaeger
+    restart: unless-stopped
+    networks:
+      - pathfinder-network
+
+  # ─── Backend API ───────────────────────────────────────────────
+  pathfinder-api:
+    build:
+      context: ./PathfinderApi
+      dockerfile: Dockerfile
+    container_name: pathfinder-api
+    ports:
+      - "5215:8080"
+    environment:
+      # OTel Auto-Instrumentation — sends traces to the Collector
+      - OTEL_SERVICE_NAME=pathfinder-api
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=none
+      - OTEL_LOGS_EXPORTER=none
+    depends_on:
+      - otel-collector
+    networks:
+      - pathfinder-network
+
+  # ─── Angular UIs ───────────────────────────────────────────────
+  pathfinder-ui:
+    build:
+      context: ./pathfinder-ui
+      dockerfile: Dockerfile
+    container_name: pathfinder-ui
+    ports:
+      - "4200:80"
+    environment:
+      - API_URL=http://localhost:5215/api
+      - OTEL_URL=http://localhost:4318/v1/traces
+    depends_on:
+      - pathfinder-api
+    networks:
+      - pathfinder-network
+
+  pathfinder-ui-zoneless:
+    build:
+      context: ./pathfinder-ui-zoneless
+      dockerfile: Dockerfile
+    container_name: pathfinder-ui-zoneless
+    ports:
+      - "4201:80"
+    environment:
+      - API_URL=http://localhost:5215/api
+      - OTEL_URL=http://localhost:4318/v1/traces
+    depends_on:
+      - pathfinder-api
+    networks:
+      - pathfinder-network
+
+networks:
+  pathfinder-network:
+    driver: bridge

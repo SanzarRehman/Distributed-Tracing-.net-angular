@@ -1,0 +1,21 @@
+# ConfigMap for application configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pathfinder-config
+  namespace: pathfinder
+data:
+  # .NET API Configuration
+  ASPNETCORE_ENVIRONMENT: "Production"
+
+  # OTel Auto-Instrumentation (standard env vars)
+  OTEL_SERVICE_NAME: "pathfinder-api"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_METRICS_EXPORTER: "none"
+  OTEL_LOGS_EXPORTER: "none"
+
+  # Angular UI Configuration
+  API_URL: "http://api-service:8080"
+  OTEL_URL: "http://jaeger:4318/v1/traces"

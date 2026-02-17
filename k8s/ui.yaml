@@ -1,0 +1,129 @@
+# Angular UI Deployment (Zone-based)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui
+  namespace: pathfinder
+  labels:
+    app: ui
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ui
+  template:
+    metadata:
+      labels:
+        app: ui
+    spec:
+      containers:
+      - name: ui
+        image: <your-registry>/pathfinder-ui:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+        envFrom:
+        - configMapRef:
+            name: pathfinder-config
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+# Angular UI Service (Zone-based)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui-service
+  namespace: pathfinder
+  labels:
+    app: ui
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http
+  selector:
+    app: ui
+---
+# Angular UI Deployment (Zoneless)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui-zoneless
+  namespace: pathfinder
+  labels:
+    app: ui-zoneless
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ui-zoneless
+  template:
+    metadata:
+      labels:
+        app: ui-zoneless
+    spec:
+      containers:
+      - name: ui-zoneless
+        image: <your-registry>/pathfinder-ui-zoneless:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+        envFrom:
+        - configMapRef:
+            name: pathfinder-config
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+# Angular UI Service (Zoneless)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui-zoneless-service
+  namespace: pathfinder
+  labels:
+    app: ui-zoneless
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http
+  selector:
+    app: ui-zoneless

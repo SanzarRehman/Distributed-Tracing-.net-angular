@@ -1,0 +1,62 @@
+location: eastus
+name: pathfinder-api
+properties:
+  environmentId: /subscriptions/<subscription-id>/resourceGroups/pathfinder-rg/providers/Microsoft.App/managedEnvironments/pathfinder-env
+  configuration:
+    activeRevisionsMode: Single
+    ingress:
+      external: true
+      targetPort: 8080
+      transport: http
+      traffic:
+      - latestRevision: true
+        weight: 100
+    secrets: []
+  template:
+    containers:
+    - name: pathfinder-api
+      image: <acr-name>.azurecr.io/pathfinder-api:latest
+      resources:
+        cpu: 0.25
+        memory: 0.5Gi
+      env:
+      - name: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - name: ASPNETCORE_URLS
+        value: http://+:8080
+      - name: OTEL_SERVICE_NAME
+        value: pathfinder-api
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://otel-collector:4317
+      - name: OTEL_EXPORTER_OTLP_PROTOCOL
+        value: grpc
+      - name: OTEL_TRACES_EXPORTER
+        value: otlp
+      - name: OTEL_METRICS_EXPORTER
+        value: none
+      - name: OTEL_LOGS_EXPORTER
+        value: none
+      probes:
+      - type: Liveness
+        httpGet:
+          path: /api/health
+          port: 8080
+        initialDelaySeconds: 30
+        periodSeconds: 10
+      - type: Readiness
+        httpGet:
+          path: /api/health
+          port: 8080
+        initialDelaySeconds: 10
+        periodSeconds: 5
+    scale:
+      minReplicas: 1
+      maxReplicas: 5
+      rules:
+      - name: http-scaling
+        http:
+          metadata:
+            concurrentRequests: "100"
+tags:
+  environment: production
+  project: pathfinder

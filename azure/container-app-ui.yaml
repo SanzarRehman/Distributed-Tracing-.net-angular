@@ -1,0 +1,50 @@
+location: eastus
+name: pathfinder-ui
+properties:
+  environmentId: /subscriptions/<subscription-id>/resourceGroups/pathfinder-rg/providers/Microsoft.App/managedEnvironments/pathfinder-env
+  configuration:
+    activeRevisionsMode: Single
+    ingress:
+      external: true
+      targetPort: 80
+      transport: http
+      traffic:
+      - latestRevision: true
+        weight: 100
+    secrets: []
+  template:
+    containers:
+    - name: pathfinder-ui
+      image: <acr-name>.azurecr.io/pathfinder-ui:latest
+      resources:
+        cpu: 0.25
+        memory: 0.5Gi
+      env:
+      - name: API_URL
+        value: http://pathfinder-api
+      - name: OTEL_URL
+        value: http://otel-collector:4318/v1/traces
+      probes:
+      - type: Liveness
+        httpGet:
+          path: /
+          port: 80
+        initialDelaySeconds: 15
+        periodSeconds: 10
+      - type: Readiness
+        httpGet:
+          path: /
+          port: 80
+        initialDelaySeconds: 5
+        periodSeconds: 5
+    scale:
+      minReplicas: 1
+      maxReplicas: 5
+      rules:
+      - name: http-scaling
+        http:
+          metadata:
+            concurrentRequests: "100"
+tags:
+  environment: production
+  project: pathfinder

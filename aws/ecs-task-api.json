@@ -1,0 +1,76 @@
+{
+    "family": "pathfinder-api",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "256",
+    "memory": "512",
+    "containerDefinitions": [
+        {
+            "name": "pathfinder-api",
+            "image": "<aws-account-id>.dkr.ecr.<region>.amazonaws.com/pathfinder-api:latest",
+            "essential": true,
+            "portMappings": [
+                {
+                    "containerPort": 8080,
+                    "protocol": "tcp"
+                }
+            ],
+            "environment": [
+                {
+                    "name": "ASPNETCORE_ENVIRONMENT",
+                    "value": "Production"
+                },
+                {
+                    "name": "ASPNETCORE_URLS",
+                    "value": "http://+:8080"
+                },
+                {
+                    "name": "OTEL_SERVICE_NAME",
+                    "value": "pathfinder-api"
+                },
+                {
+                    "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+                    "value": "http://otel-collector.pathfinder.local:4317"
+                },
+                {
+                    "name": "OTEL_EXPORTER_OTLP_PROTOCOL",
+                    "value": "grpc"
+                },
+                {
+                    "name": "OTEL_TRACES_EXPORTER",
+                    "value": "otlp"
+                },
+                {
+                    "name": "OTEL_METRICS_EXPORTER",
+                    "value": "none"
+                },
+                {
+                    "name": "OTEL_LOGS_EXPORTER",
+                    "value": "none"
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/pathfinder-api",
+                    "awslogs-region": "<region>",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "curl -f http://localhost:8080/api/health || exit 1"
+                ],
+                "interval": 30,
+                "timeout": 5,
+                "retries": 3,
+                "startPeriod": 60
+            }
+        }
+    ],
+    "executionRoleArn": "arn:aws:iam::<account-id>:role/ecsTaskExecutionRole",
+    "taskRoleArn": "arn:aws:iam::<account-id>:role/pathfinderTaskRole"
+}

@@ -1,0 +1,110 @@
+<div class="app-container">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">◉</span>
+        <h1>Pathfinder</h1>
+        <span class="badge">Distributed Tracing</span>
+      </div>
+      <button class="jaeger-btn" (click)="openJaeger()">
+        <span class="jaeger-icon">📊</span>
+        Open Jaeger UI
+        <span class="arrow">→</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- Client-Side Errors -->
+    <section class="section">
+      <div class="section-header">
+        <h2>
+          <span class="section-icon">🖥️</span>
+          Client-Side Errors
+        </h2>
+        <p class="section-desc">Triggered directly in the browser — JS exceptions, network failures, and parsing errors</p>
+      </div>
+      <div class="grid">
+        @for (btn of clientActions; track btn.id) {
+          <button
+            class="action-card"
+            [class.loading]="btn.status === 'loading'"
+            [class.success]="btn.status === 'success'"
+            [class.error]="btn.status === 'error'"
+            (click)="btn.action()"
+            [disabled]="btn.status === 'loading'"
+          >
+            <div class="card-top">
+              <span class="card-icon">{{ btn.icon }}</span>
+              <span class="status-dot"
+                [class.dot-idle]="btn.status === 'idle'"
+                [class.dot-loading]="btn.status === 'loading'"
+                [class.dot-success]="btn.status === 'success'"
+                [class.dot-error]="btn.status === 'error'"
+              ></span>
+            </div>
+            <h3>{{ btn.label }}</h3>
+            <p class="card-desc">{{ btn.description }}</p>
+            @if (btn.response) {
+              <div class="card-response">
+                <code>{{ btn.response }}</code>
+              </div>
+            }
+            @if (btn.status === 'loading') {
+              <div class="loader"></div>
+            }
+          </button>
+        }
+      </div>
+    </section>
+
+    <!-- Server-Side Errors -->
+    <section class="section">
+      <div class="section-header">
+        <h2>
+          <span class="section-icon">⚙️</span>
+          Server-Side Errors
+        </h2>
+        <p class="section-desc">Triggered via HTTP calls to the .NET backend — exceptions, timeouts, resource exhaustion, and auth failures</p>
+      </div>
+      <div class="grid">
+        @for (btn of serverActions; track btn.id) {
+          <button
+            class="action-card"
+            [class.loading]="btn.status === 'loading'"
+            [class.success]="btn.status === 'success'"
+            [class.error]="btn.status === 'error'"
+            (click)="btn.action()"
+            [disabled]="btn.status === 'loading'"
+          >
+            <div class="card-top">
+              <span class="card-icon">{{ btn.icon }}</span>
+              <span class="status-dot"
+                [class.dot-idle]="btn.status === 'idle'"
+                [class.dot-loading]="btn.status === 'loading'"
+                [class.dot-success]="btn.status === 'success'"
+                [class.dot-error]="btn.status === 'error'"
+              ></span>
+            </div>
+            <h3>{{ btn.label }}</h3>
+            <p class="card-desc">{{ btn.description }}</p>
+            @if (btn.response) {
+              <div class="card-response">
+                <code>{{ btn.response }}</code>
+              </div>
+            }
+            @if (btn.status === 'loading') {
+              <div class="loader"></div>
+            }
+          </button>
+        }
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>OpenTelemetry + Jaeger · .NET 9 + Angular 19 · End-to-End Distributed Tracing</p>
+  </footer>
+</div>

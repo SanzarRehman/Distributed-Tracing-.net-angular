@@ -1,0 +1,50 @@
+# ──── .NET ────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.log
+*.vs/
+.idea/
+
+# ──── Node / Angular ─────────────────────────────────
+node_modules/
+dist/
+.angular/
+.nx/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ──── OpenTelemetry Auto-Instrumentation ─────────────
+otel-dotnet-auto/
+*.otel-logs/
+
+# ──── Docker ─────────────────────────────────────────
+docker-compose.override.yml
+
+# ──── OS ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# ──── IDE ────────────────────────────────────────────
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+
+# ──── Environment / Secrets ──────────────────────────
+.env
+.env.local
+.env.*.local
+**/env.js
+!**/env.template.js
+
+# ──── Build artifacts ────────────────────────────────
+*.dll
+*.pdb
+*.exe
+publish/

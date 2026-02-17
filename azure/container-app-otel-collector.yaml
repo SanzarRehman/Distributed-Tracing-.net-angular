@@ -1,0 +1,45 @@
+location: eastus
+name: otel-collector
+properties:
+  environmentId: /subscriptions/<subscription-id>/resourceGroups/pathfinder-rg/providers/Microsoft.App/managedEnvironments/pathfinder-env
+  configuration:
+    activeRevisionsMode: Single
+    ingress:
+      external: false
+      targetPort: 4317
+      transport: http2
+      traffic:
+      - latestRevision: true
+        weight: 100
+    secrets: []
+  template:
+    containers:
+    - name: otel-collector
+      image: otel/opentelemetry-collector-contrib:latest
+      resources:
+        cpu: 0.25
+        memory: 0.5Gi
+      probes:
+      - type: Liveness
+        httpGet:
+          path: /health
+          port: 13133
+        initialDelaySeconds: 15
+        periodSeconds: 10
+      - type: Readiness
+        httpGet:
+          path: /health
+          port: 13133
+        initialDelaySeconds: 5
+        periodSeconds: 5
+    scale:
+      minReplicas: 1
+      maxReplicas: 3
+      rules:
+      - name: http-scaling
+        http:
+          metadata:
+            concurrentRequests: "200"
+tags:
+  environment: production
+  project: pathfinder

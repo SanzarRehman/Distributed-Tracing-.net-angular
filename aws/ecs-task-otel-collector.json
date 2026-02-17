@@ -1,0 +1,51 @@
+{
+    "family": "pathfinder-otel-collector",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "256",
+    "memory": "512",
+    "containerDefinitions": [
+        {
+            "name": "otel-collector",
+            "image": "otel/opentelemetry-collector-contrib:latest",
+            "essential": true,
+            "portMappings": [
+                {
+                    "containerPort": 4317,
+                    "protocol": "tcp"
+                },
+                {
+                    "containerPort": 4318,
+                    "protocol": "tcp"
+                }
+            ],
+            "environment": [
+                {
+                    "name": "OTEL_CONFIG",
+                    "value": "/etc/otelcol-contrib/config.yaml"
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/pathfinder-otel-collector",
+                    "awslogs-region": "<region>",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "wget --quiet --tries=1 --spider http://localhost:13133/health || exit 1"
+                ],
+                "interval": 30,
+                "timeout": 5,
+                "retries": 3,
+                "startPeriod": 30
+            }
+        }
+    ],
+    "executionRoleArn": "arn:aws:iam::<account-id>:role/ecsTaskExecutionRole"
+}

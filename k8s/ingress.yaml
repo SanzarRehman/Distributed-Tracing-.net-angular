@@ -1,0 +1,52 @@
+# Ingress Configuration
+# Exposes UI, Zoneless UI, and Jaeger UI externally via HTTP/HTTPS
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pathfinder-ingress
+  namespace: pathfinder
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # For TLS
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - pathfinder.example.com
+    - pathfinder-zoneless.example.com
+    - jaeger.example.com
+    secretName: pathfinder-tls
+  rules:
+  # Angular UI (Zone-based)
+  - host: pathfinder.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ui-service
+            port:
+              number: 80
+  # Angular UI (Zoneless)
+  - host: pathfinder-zoneless.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ui-zoneless-service
+            port:
+              number: 80
+  # Jaeger UI
+  - host: jaeger.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jaeger
+            port:
+              number: 16686
