@@ -41,11 +41,13 @@ try
         opts.UseInMemoryDatabase("PathfinderDb"));
 
     // ---------- CORS ----------
+    var corsOrigins = (builder.Configuration["CORS_ORIGINS"] ?? "http://localhost:4200,http://localhost:4201")
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     builder.Services.AddCors(opts =>
     {
         opts.AddPolicy("AllowAngular", policy =>
         {
-            policy.WithOrigins("http://localhost:4200", "http://localhost:4201")
+            policy.WithOrigins(corsOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();

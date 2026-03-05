@@ -54,6 +54,9 @@ exporters:
     endpoint: ${CUSTOM_CONSUMER_ENDPOINT}
     tls:
       insecure: true
+  # Write traces to a local JSON file for inspection
+  file/custom:
+    path: /data/custom-traces.json
 
   # Detailed debug — logs every span so we can confirm ingestion
   debug:
@@ -65,7 +68,7 @@ service:
     traces/jaeger:
       receivers:  [otlp]
       processors: [batch/jaeger]
-      exporters:  [otlp/jaeger, debug]
+      exporters:  [otlp/jaeger, file/custom, debug]
 
     traces/custom:
       receivers:  [otlp]

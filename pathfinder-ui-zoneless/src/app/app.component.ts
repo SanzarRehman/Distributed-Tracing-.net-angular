@@ -331,6 +331,7 @@ export class AppComponent {
   }
 
   openJaeger() {
-    window.open('http://localhost:16686', '_blank');
+    const jaegerUrl = (window as any).env?.JAEGER_URL || 'http://localhost:16686';
+    window.open(jaegerUrl, '_blank');
   }
 }

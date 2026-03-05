@@ -54,6 +54,15 @@ ENV OTEL_METRICS_EXPORTER=none
 ENV OTEL_LOGS_EXPORTER=none
 ENV OTEL_DOTNET_AUTO_TRACES_ADDITIONAL_SOURCES=PathfinderApi
 
+# ── Auto-instrumentation: Enable specific library hooks ──────
+# HttpClient — traces outbound HTTP calls (e.g. HttpClientFactory → NewApp)
+ENV OTEL_DOTNET_AUTO_TRACES_HTTPCLIENT_INSTRUMENTATION_ENABLED=true
+# SqlClient — traces ADO.NET / EF Core database queries
+ENV OTEL_DOTNET_AUTO_TRACES_SQLCLIENT_INSTRUMENTATION_ENABLED=true
+ENV OTEL_DOTNET_AUTO_TRACES_ENTITYFRAMEWORKCORE_INSTRUMENTATION_ENABLED=true
+# ASP.NET Core — traces inbound HTTP requests
+ENV OTEL_DOTNET_AUTO_TRACES_ASPNETCORE_INSTRUMENTATION_ENABLED=true
+
 # Copy published app from build stage
 COPY --from=build /app/publish .
 
@@ -64,9 +73,9 @@ EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8080/api/health || exit 1
+# # Health check
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+#   CMD curl -f http://localhost:8080/api/health || exit 1
 
 # Run the application
 ENTRYPOINT ["dotnet", "PathfinderApi.dll"]

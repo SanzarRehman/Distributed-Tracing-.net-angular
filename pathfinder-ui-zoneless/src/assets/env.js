@@ -6,4 +6,5 @@
     // Do NOT hardcode URLs here — edit .env instead.
     window.env.API_URL = '';
     window.env.OTEL_URL = '';
+    window.env.JAEGER_URL = '';
 })(this);
