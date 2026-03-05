@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+      - name: otel-collector
+        image: "{{ .Values.otelCollector.image }}:{{ .Values.otelCollector.tag }}"
+        ports:
+        - containerPort: {{ .Values.otelCollector.grpcPort }}
+          name: otlp-grpc
+        - containerPort: {{ .Values.otelCollector.httpPort }}
+          name: otlp-http
+        env:
+        - name: CUSTOM_CONSUMER_ENDPOINT
+          value: "host.docker.internal:4317"
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: config
+          mountPath: /etc/otelcol-contrib/config.yaml
+          subPath: config.yaml
+      volumes:
+      - name: data
+        emptyDir: {}
+      - name: config
+        configMap:
+          name: otel-collector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: {{ .Values.global.namespace }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.otelCollector.grpcPort }}
+    targetPort: {{ .Values.otelCollector.grpcPort }}
+    name: otlp-grpc
+  - port: {{ .Values.otelCollector.httpPort }}
+    targetPort: {{ .Values.otelCollector.httpPort }}
+    name: otlp-http
+  selector:
+    app: otel-collector

@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: {{ .Values.global.namespace }}
+data:
+  config.yaml: |
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+            cors:
+              allowed_origins:
+                - "http://localhost:4200"
+                - "http://localhost:4201"
+                - "http://localhost"
+              allowed_headers:
+                - "Content-Type"
+                - "Content-Encoding"
+                - "Accept"
+                - "traceparent"
+                - "tracestate"
+                - "baggage"
+
+    processors:
+      batch/jaeger:
+        timeout: 5s
+        send_batch_size: 512
+
+      tail_sampling/custom:
+        decision_wait: 10s
+        num_traces: 10000
+        policies:
+          - name: always-sample
+            type: always_sample
+
+    exporters:
+      otlp/jaeger:
+        endpoint: jaeger:4317
+        tls:
+          insecure: true
+
+      otlp/custom:
+        endpoint: ${CUSTOM_CONSUMER_ENDPOINT}
+        tls:
+          insecure: true
+      
+      file/custom:
+        path: /data/custom-traces.json
+
+      debug:
+        verbosity: detailed
+
+    service:
+      extensions: [health_check]
+      pipelines:
+        traces/jaeger:
+          receivers:  [otlp]
+          processors: [batch/jaeger]
+          exporters:  [otlp/jaeger, file/custom, debug]
+
+        traces/custom:
+          receivers:  [otlp]
+          processors: [tail_sampling/custom]
+          exporters:  [otlp/custom]
+
+      telemetry:
+        logs:
+          level: info

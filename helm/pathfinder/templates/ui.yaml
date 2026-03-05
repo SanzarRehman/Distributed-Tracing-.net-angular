@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: ui
+spec:
+  replicas: {{ .Values.ui.replicas }}
+  selector:
+    matchLabels:
+      app: ui
+  template:
+    metadata:
+      labels:
+        app: ui
+    spec:
+      containers:
+      - name: ui
+        image: "{{ if .Values.registry }}{{ .Values.registry }}/{{ end }}{{ .Values.ui.image }}:{{ .Values.ui.tag }}"
+        {{- if .Values.ui.imagePullPolicy }}
+        imagePullPolicy: {{ .Values.ui.imagePullPolicy }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.ui.port }}
+        env:
+        {{- range $key, $val := .Values.ui.env }}
+        - name: {{ $key }}
+          value: {{ $val | quote }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.ui.resources | nindent 10 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui
+  namespace: {{ .Values.global.namespace }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.ui.port }}
+    targetPort: {{ .Values.ui.port }}
+  selector:
+    app: ui

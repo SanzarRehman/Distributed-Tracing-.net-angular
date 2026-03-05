@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pathfinder-config
+  namespace: {{ .Values.global.namespace }}
+data:
+  {{- range $key, $val := .Values.api.env }}
+  {{ $key }}: {{ $val | quote }}
+  {{- end }}

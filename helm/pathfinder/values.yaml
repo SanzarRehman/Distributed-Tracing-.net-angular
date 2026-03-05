@@ -1,0 +1,118 @@
+# Pathfinder Helm Chart — values.yaml
+# Override these in your environment-specific values file (values-aws.yaml, values-local.yaml, etc.)
+
+global:
+  namespace: pathfinder
+
+# ── Docker Registry ──────────────────────────────────────────
+registry: ""  # e.g. 123456789012.dkr.ecr.us-east-1.amazonaws.com
+
+# ── API ──────────────────────────────────────────────────────
+api:
+  image: pathfinder/api
+  tag: latest
+  imagePullPolicy: ""  # IfNotPresent for local, Always for prod
+  replicas: 2
+  port: 8080
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    OTEL_SERVICE_NAME: pathfinder-api
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+    OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+    OTEL_TRACES_EXPORTER: otlp
+    OTEL_METRICS_EXPORTER: "none"
+    OTEL_LOGS_EXPORTER: "none"
+    OTEL_DOTNET_AUTO_TRACES_ADDITIONAL_SOURCES: PathfinderApi
+    OTEL_DOTNET_AUTO_TRACES_HTTPCLIENT_INSTRUMENTATION_ENABLED: "true"
+    OTEL_DOTNET_AUTO_TRACES_SQLCLIENT_INSTRUMENTATION_ENABLED: "true"
+    OTEL_DOTNET_AUTO_TRACES_ENTITYFRAMEWORKCORE_INSTRUMENTATION_ENABLED: "true"
+    OTEL_DOTNET_AUTO_TRACES_ASPNETCORE_INSTRUMENTATION_ENABLED: "true"
+    CORS_ORIGINS: http://localhost:4200
+    RABBITMQ_HOST: rabbitmq
+    NEWAPP_URL: http://newapp:8080/api/newapp/process
+
+# ── UI ───────────────────────────────────────────────────────
+ui:
+  image: pathfinder/ui-zoneless
+  tag: latest
+  imagePullPolicy: ""
+  replicas: 1
+  port: 80
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  env:
+    API_URL: http://api:8080/api
+    OTEL_URL: http://otel-collector:4318/v1/traces
+    JAEGER_URL: http://jaeger:16686
+
+# ── NewApp ───────────────────────────────────────────────────
+newapp:
+  image: pathfinder/newapp
+  tag: latest
+  imagePullPolicy: ""
+  replicas: 1
+  port: 8080
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+  env:
+    OTEL_SERVICE_NAME: newapp
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+    OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+    OTEL_TRACES_EXPORTER: otlp
+    OTEL_METRICS_EXPORTER: "none"
+    OTEL_LOGS_EXPORTER: "none"
+    OTEL_DOTNET_AUTO_TRACES_ADDITIONAL_SOURCES: NewApp
+    OTEL_DOTNET_AUTO_TRACES_HTTPCLIENT_INSTRUMENTATION_ENABLED: "true"
+    OTEL_DOTNET_AUTO_TRACES_SQLCLIENT_INSTRUMENTATION_ENABLED: "true"
+    OTEL_DOTNET_AUTO_TRACES_ASPNETCORE_INSTRUMENTATION_ENABLED: "true"
+    RABBITMQ_HOST: rabbitmq
+
+# ── RabbitMQ ─────────────────────────────────────────────────
+rabbitmq:
+  image: rabbitmq
+  tag: 3-management
+  port: 5672
+  managementPort: 15672
+
+# ── Jaeger ───────────────────────────────────────────────────
+jaeger:
+  image: jaegertracing/all-in-one
+  tag: latest
+  port: 16686
+
+# ── OTel Collector ───────────────────────────────────────────
+otelCollector:
+  image: otel/opentelemetry-collector-contrib
+  tag: latest
+  grpcPort: 4317
+  httpPort: 4318
+
+# ── Ingress ──────────────────────────────────────────────────
+ingress:
+  enabled: true
+  className: alb
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+  hosts:
+    ui: pathfinder.example.com
+    api: api.pathfinder.example.com
+    jaeger: jaeger.pathfinder.example.com
+    otel: otel.pathfinder.example.com

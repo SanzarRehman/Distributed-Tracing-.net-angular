@@ -1,0 +1,41 @@
+# Local Docker Desktop Kubernetes overrides
+# Usage: helm upgrade --install pathfinder ./helm/pathfinder -f helm/values-localdocker.yaml -n pathfinder --create-namespace
+
+api:
+  tag: latest
+  imagePullPolicy: IfNotPresent
+  env:
+    CORS_ORIGINS: http://localhost:4200,http://pathfinder.localhost
+    RABBITMQ_HOST: rabbitmq
+    NEWAPP_URL: http://newapp:8080/api/newapp/process
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+
+ui:
+  tag: latest
+  imagePullPolicy: IfNotPresent
+  env:
+    API_URL: http://api.pathfinder.localhost/api
+    OTEL_URL: http://otel.pathfinder.localhost/v1/traces
+    JAEGER_URL: http://jaeger.pathfinder.localhost
+
+newapp:
+  tag: latest
+  imagePullPolicy: IfNotPresent
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    kubernetes.io/ingress.class: null
+    alb.ingress.kubernetes.io/scheme: null
+    alb.ingress.kubernetes.io/target-type: null
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "http://pathfinder.localhost"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Encoding,Range,Authorization,Accept,traceparent,tracestate,baggage"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+  hosts:
+    ui: pathfinder.localhost
+    api: api.pathfinder.localhost
+    jaeger: jaeger.pathfinder.localhost
+    otel: otel.pathfinder.localhost

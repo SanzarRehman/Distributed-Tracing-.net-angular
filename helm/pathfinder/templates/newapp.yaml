@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: newapp
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: newapp
+spec:
+  replicas: {{ .Values.newapp.replicas }}
+  selector:
+    matchLabels:
+      app: newapp
+  template:
+    metadata:
+      labels:
+        app: newapp
+    spec:
+      containers:
+      - name: newapp
+        image: "{{ if .Values.registry }}{{ .Values.registry }}/{{ end }}{{ .Values.newapp.image }}:{{ .Values.newapp.tag }}"
+        {{- if .Values.newapp.imagePullPolicy }}
+        imagePullPolicy: {{ .Values.newapp.imagePullPolicy }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.newapp.port }}
+        env:
+        {{- range $key, $val := .Values.newapp.env }}
+        - name: {{ $key }}
+          value: {{ $val | quote }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.newapp.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: {{ .Values.newapp.port }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: newapp
+  namespace: {{ .Values.global.namespace }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.newapp.port }}
+    targetPort: {{ .Values.newapp.port }}
+  selector:
+    app: newapp
