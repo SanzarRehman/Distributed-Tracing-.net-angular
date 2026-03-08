@@ -1,0 +1,166 @@
+name: Build & Push to AWS ECR
+
+# ─────────────────────────────────────────────
+#  Trigger: any semver tag  (e.g. v1.2.3)
+# ─────────────────────────────────────────────
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  AWS_REGION:      eu-north-1
+  ECR_REGISTRY:    002823001366.dkr.ecr.eu-north-1.amazonaws.com
+
+  # ECR repository names
+  ECR_REPO_API:    pathfinder/dummy-backend1   # PathfinderApi  → backend1
+  ECR_REPO_NEWAPP: pathfinder/dummy-backend2   # NewApp         → backend2
+  ECR_REPO_UI:     pathfinder/dummy-frontend   # UI (zoneless)  → frontend
+
+  # Build contexts (relative to repo root)
+  CTX_API:    PathfinderApi
+  CTX_NEWAPP: NewApp
+  CTX_UI:     pathfinder-ui-zoneless
+
+jobs:
+  # ──────────────────────────────────────────
+  # 1. Build + Push  PathfinderApi  (backend1)
+  # ──────────────────────────────────────────
+  build-api:
+    name: PathfinderApi → ECR (dummy-backend1)
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # needed for OIDC auth (if you switch to OIDC later)
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Extract tag version
+        id: meta
+        run: |
+          # Strip the leading 'v' so docker tag is e.g. 1.2.3
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & Push PathfinderApi
+        uses: docker/build-push-action@v5
+        with:
+          context:    ${{ env.CTX_API }}
+          file:       ${{ env.CTX_API }}/Dockerfile
+          push:       true
+          platforms:  linux/amd64,linux/arm64
+          tags: |
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_API }}:${{ steps.meta.outputs.version }}
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_API }}:latest
+          cache-from: type=gha,scope=api
+          cache-to:   type=gha,mode=max,scope=api
+
+  # ──────────────────────────────────────────
+  # 2. Build + Push  NewApp  (backend2)
+  # ──────────────────────────────────────────
+  build-newapp:
+    name: NewApp → ECR (dummy-backend2)
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Extract tag version
+        id: meta
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & Push NewApp
+        uses: docker/build-push-action@v5
+        with:
+          context:    ${{ env.CTX_NEWAPP }}
+          file:       ${{ env.CTX_NEWAPP }}/Dockerfile
+          push:       true
+          platforms:  linux/amd64,linux/arm64
+          tags: |
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_NEWAPP }}:${{ steps.meta.outputs.version }}
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_NEWAPP }}:latest
+          cache-from: type=gha,scope=newapp
+          cache-to:   type=gha,mode=max,scope=newapp
+
+  # ──────────────────────────────────────────
+  # 3. Build + Push  Angular UI  (frontend)
+  # ──────────────────────────────────────────
+  build-ui:
+    name: UI (zoneless) → ECR (dummy-frontend)
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Extract tag version
+        id: meta
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & Push UI
+        uses: docker/build-push-action@v5
+        with:
+          context:    ${{ env.CTX_UI }}
+          file:       ${{ env.CTX_UI }}/Dockerfile
+          push:       true
+          platforms:  linux/amd64,linux/arm64
+          tags: |
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_UI }}:${{ steps.meta.outputs.version }}
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_UI }}:latest
+          cache-from: type=gha,scope=ui
+          cache-to:   type=gha,mode=max,scope=ui
