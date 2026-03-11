@@ -47,8 +47,9 @@ CERT_ARN=""     # arn:aws:acm:us-east-1:002823001366:certificate/xxxx
 # 2. Ops-Agent Credentials
 # ─────────────────────────────────────────────
 # DO NOT put real secrets here — this file can be committed to git.
-# Instead, create helm/ops-agent-secrets.sh (it is gitignored) and set
-# the variables there. That file is sourced automatically if it exists.
+# Instead, copy helm/ops-agent-secrets.sh.example to helm/ops-agent-secrets.sh
+# (the real file is gitignored) and set the variables there. That file is
+# sourced automatically if it exists.
 #
 # Example helm/ops-agent-secrets.sh:
 #   OPENAI_API_KEY="sk-..."

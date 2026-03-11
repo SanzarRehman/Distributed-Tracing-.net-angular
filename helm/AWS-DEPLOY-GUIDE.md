@@ -32,7 +32,7 @@ OPS_AGENT_IMAGE_REPO="pftc/kairosysv1"
 
 Only change those if your ECR repo names are different.
 
-Also fill in all the **Ops-Agent secrets** (OpenAI, Azure, etc.) the same way you did in `local-deploy.sh`.
+Also fill in all the **Ops-Agent secrets** (OpenAI, Azure, etc.) by copying `helm/ops-agent-secrets.sh.example` to `helm/ops-agent-secrets.sh` and setting the real values there.
 
 ---
 
